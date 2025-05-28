@@ -1,9 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import ClipitLogo from "/images/ClipitLogo.svg";
+import Pencil from "/icons/pencil.svg";
+import DropBookmark from "/icons/drop_bookmark.svg";
+import DropSetting from "/icons/drop_setting.svg";
+import DropLogout from "/icons/drop_logout.svg";
 import Profile from "/images/Anonymous.png";
 import { useState, useRef, useEffect } from "react";
-import LoginModal from "./auth/LoginModal";
-import { useAuth } from "../hooks/useAuth"; // Context 사용
+import LoginModal from "../auth/LoginModal";
+import { useAuth } from "../../hooks/useAuth"; // Context 사용
 
 const Header = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,7 +52,7 @@ const Header = () => {
             {isLoggedIn && (
               <>
                 <div className="text-gray-300">|</div>
-                <Link to="/explore">탐색하기</Link>
+                {/* <Link to="/explore">탐색하기</Link> */}
                 <Link to="/my-code">내 코드</Link>
               </>
             )}
@@ -64,7 +68,14 @@ const Header = () => {
                 로그인
               </button>
             ) : (
-              <div className="relative" ref={dropdownRef}>
+              <div
+                className="flex flex-row items-center gap-6 relative"
+                ref={dropdownRef}
+              >
+                <div></div>
+                <div className="w-9 h-9 rounded-full bg-[var(--primary-color)] flex items-center justify-center cursor-pointer hover:bg-[var(--primary-hover)] transition">
+                  <img src={Pencil} className="w-4 h-4" />
+                </div>
                 <img
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="w-9 h-9 rounded-full bg-gray-300 cursor-pointer"
@@ -72,20 +83,32 @@ const Header = () => {
                   alt="프로필 사진"
                 />
                 {isDropdownOpen && (
-                  <div className="absolute right-0 top-12 w-36 bg-white border border-[var(--border-color)] rounded-2xl shadow-md z-50">
+                  <div className="absolute right-0 top-11 w-48 p-2.5 flex flex-col gap-2 bg-white border border-[var(--border-color)] rounded-2xl shadow-md z-50">
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        navigate("/my-code");
+                      }}
+                      className="w-full px-2 py-3 text-left text-[var(--text-color)] hover:bg-gray-100 rounded-lg cursor-pointer flex flex-row gap-3 text-[1rem]"
+                    >
+                      <img src={DropBookmark} alt="" />
+                      북마크
+                    </button>
                     <button
                       onClick={() => {
                         setIsDropdownOpen(false);
                         navigate("/settings");
                       }}
-                      className="w-full px-4 py-4 text-left hover:bg-gray-100 cursor-pointer"
+                      className="w-full px-2 py-3 text-left text-[var(--text-color)] hover:bg-gray-100 rounded-lg cursor-pointer flex flex-row gap-3 text-[1rem]"
                     >
+                      <img src={DropSetting} alt="" />
                       설정
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-4 text-left hover:bg-gray-100 cursor-pointer"
+                      className="w-full px-2 py-3 text-left text-[#E54040] hover:bg-gray-100 rounded-lg cursor-pointer flex flex-row gap-3 text-[1rem]"
                     >
+                      <img src={DropLogout} alt="" />
                       로그아웃
                     </button>
                   </div>

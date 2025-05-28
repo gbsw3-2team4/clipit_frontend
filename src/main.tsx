@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import "./global.css";
 import App from "./App.tsx";
-import Header from "./components/Header.tsx";
+import Header from "./components/common/Header.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.tsx";
 

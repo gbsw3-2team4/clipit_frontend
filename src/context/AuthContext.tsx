@@ -14,28 +14,44 @@ interface AuthContextType {
   logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+export const AuthContext = createContext<
+  (AuthContextType & { isLoading: boolean }) | undefined
+>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(authService.getCurrentUser());
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
     authService.isLoggedIn()
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkLogin = async () => {
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        setIsLoggedIn(false);
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         await authService.checkToken();
-        const currentUser = authService.getCurrentUser();
-        setIsLoggedIn(true);
+
+        // ✅ 유효한 토큰이면 유저 정보 API로부터 새로 받아오기
+        const currentUser = await authService.getUserInfo();
         setUser(currentUser);
+        setIsLoggedIn(true);
       } catch {
         setIsLoggedIn(false);
         setUser(null);
+        authService.clearAuth(); // 실패 시 클린업
+      } finally {
+        setIsLoading(false);
       }
     };
+
     checkLogin();
   }, []);
 
@@ -53,7 +69,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoggedIn, login, logout, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

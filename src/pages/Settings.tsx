@@ -3,6 +3,8 @@ import { useAuth } from "../context/AuthContext";
 const Settings = () => {
   const { user, isLoading } = useAuth();
 
+  console.log(user);
+
   if (isLoading) return <div className="m-16">Loading...</div>;
   if (!user) return <div className="m-10">로그인되지 않았습니다.</div>;
 

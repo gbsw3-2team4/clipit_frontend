@@ -86,4 +86,9 @@
     color: var(--text-sub-color);
     line-height: 1.6;
   }
+  button,
+  select,
+  option {
+    cursor: pointer;
+  }
 }

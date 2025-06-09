@@ -73,7 +73,10 @@ const Header = () => {
                 ref={dropdownRef}
               >
                 <div></div>
-                <div className="w-9 h-9 rounded-full bg-[var(--primary-color)] flex items-center justify-center cursor-pointer hover:bg-[var(--primary-hover)] transition">
+                <div
+                  onClick={() => navigate("/posts/new")}
+                  className="w-9 h-9 rounded-full bg-[var(--primary-color)] flex items-center justify-center cursor-pointer hover:bg-[var(--primary-hover)] transition"
+                >
                   <img src={Pencil} className="w-4 h-4" />
                 </div>
                 <img

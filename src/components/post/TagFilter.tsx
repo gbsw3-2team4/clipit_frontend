@@ -1,9 +1,17 @@
-import { useState } from "react";
+// src/components/post/TagFilter.tsx
+interface TagFilterProps {
+  selectedTag?: string;
+  onTagChange?: (tag: string) => void;
+}
 
 const tags = ["전체", "프론트엔드", "백엔드", "AI", "SQL/DB", "클라우드"];
 
-const TagFilter = () => {
-  const [selectedTag, setSelectedTag] = useState("전체");
+const TagFilter = ({ selectedTag = "전체", onTagChange }: TagFilterProps) => {
+  const handleTagClick = (tag: string) => {
+    if (onTagChange) {
+      onTagChange(tag);
+    }
+  };
 
   return (
     <div className="w-full h-8 flex flex-wrap gap-4 my-10">
@@ -13,7 +21,7 @@ const TagFilter = () => {
         return (
           <button
             key={tag}
-            onClick={() => setSelectedTag(tag)}
+            onClick={() => handleTagClick(tag)}
             className={`h-full px-3 text-sm rounded-full transition cursor-pointer
               ${
                 isSelected

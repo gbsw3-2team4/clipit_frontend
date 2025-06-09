@@ -45,12 +45,12 @@ class PostService {
     return Array.isArray(response.data) ? response.data : [];
   }
 
-  // 게시글 목록 조회 (페이지네이션 시뮬레이션)
+  // 게시글 목록 조회 (클라이언트 페이지네이션)
   async fetchPosts(page: number = 1, pageSize: number = 10): Promise<Post[]> {
     const response = await axiosInstance.get<Post[]>("/posts");
     const allPosts = Array.isArray(response.data) ? response.data : [];
 
-    // 페이지네이션 처리
+    // 클라이언트에서 페이지네이션 처리
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     return allPosts.slice(startIndex, endIndex);
@@ -97,7 +97,7 @@ class PostService {
     const response = await axiosInstance.get<PostsResponse>(
       `/posts/author/${authorId}`
     );
-    return response.data.posts || [];
+    return response.data.posts;
   }
 
   // 내가 작성한 게시글 조회 (현재 로그인한 사용자)

@@ -34,7 +34,6 @@ const Explore = () => {
           setPosts(newPosts);
         } else {
           setPosts((prev) => {
-            // 중복 제거: 기존 게시글 ID와 새 게시글 ID를 비교
             const existingIds = new Set(prev.map((post) => post.id));
             const uniqueNewPosts = newPosts.filter(
               (post) => !existingIds.has(post.id)
@@ -43,12 +42,9 @@ const Explore = () => {
           });
         }
 
-        // 다음 페이지 존재 여부 확인 (10개 미만이면 마지막 페이지)
         setHasNextPage(newPosts.length === 10);
         setCurrentPage(page);
       } catch (err: any) {
-        console.error("게시글 로드 에러:", err);
-
         if (err.response?.status === 401) {
           setError("로그인이 필요합니다.");
         } else if (err.response?.data?.message) {
@@ -60,10 +56,10 @@ const Explore = () => {
         setIsLoading(false);
       }
     },
-    [isLoading, selectedTag]
+    [isLoading]
   );
 
-  // 태그별 필터링 (클라이언트 사이드)
+  // 태그별 필터링
   const filteredPosts =
     selectedTag === "전체"
       ? posts
@@ -110,17 +106,7 @@ const Explore = () => {
     loadPosts(1, true);
   }, []);
 
-  // 태그 변경 시 첫 페이지 다시 로드
-  useEffect(() => {
-    if (selectedTag === "전체") {
-      setPosts([]);
-      setCurrentPage(1);
-      setHasNextPage(true);
-      loadPosts(1, true);
-    }
-  }, [selectedTag]);
-
-  // 태그 변경 핸들러
+  // 태그 변경 시 필터링만 적용 (새로 로드하지 않음)
   const handleTagChange = (tag: string) => {
     setSelectedTag(tag);
   };
@@ -160,16 +146,6 @@ const Explore = () => {
             >
               다시 시도
             </button>
-          </div>
-        )}
-
-        {/* 태그 필터링 알림 */}
-        {selectedTag !== "전체" && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-600">
-              '{selectedTag}' 태그로 필터링된 결과입니다. 무한스크롤은 '전체'
-              태그에서만 동작합니다.
-            </p>
           </div>
         )}
 

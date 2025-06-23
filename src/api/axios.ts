@@ -1,7 +1,7 @@
 import axios from "axios";
 import authService from "./authService";
 
-const BASE_URL = "https://clipit-backend.vercel.app";
+const BASE_URL = "http://localhost:3000/";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,

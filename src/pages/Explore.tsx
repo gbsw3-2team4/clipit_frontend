@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PostCard from "../components/post/PostCard";
 import TagFilter from "../components/post/TagFilter";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 import postService, { Post } from "../api/postService";
 
 const Explore = () => {
@@ -164,8 +165,11 @@ const Explore = () => {
             {selectedTag === "전체" && hasNextPage && (
               <div ref={observerRef} className="flex justify-center py-8">
                 {isLoading ? (
-                  <div className="text-lg text-gray-500">
-                    더 많은 게시글을 불러오는 중...
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="md" />
+                    <span className="text-sm text-gray-500">
+                      더 많은 게시글을 불러오는 중...
+                    </span>
                   </div>
                 ) : (
                   <div className="text-lg text-gray-400">
@@ -186,10 +190,10 @@ const Explore = () => {
           </>
         ) : (
           // 빈 상태
-          <div className="flex flex-col items-center justify-center py-24">
+          <div className="flex flex-col items-center justify-center py-30">
             {isLoading ? (
-              <div className="text-lg text-gray-500">
-                게시글을 불러오는 중...
+              <div className="flex flex-col items-center gap-4">
+                <LoadingSpinner size="md" />
               </div>
             ) : (
               <>

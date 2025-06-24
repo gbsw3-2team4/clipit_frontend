@@ -1,6 +1,6 @@
-// src/pages/PostCreate.tsx
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/pages/PostEdit.tsx
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { syntaxStyles } from "../styles/syntaxThemes";
 import { useTheme } from "../context/ThemeContext";
@@ -8,7 +8,9 @@ import Language from "/icons/code_language.svg";
 import Arrow from "/icons/code_arrow.svg";
 
 import Button from "../components/common/Button";
-import postService, { CreatePostRequest } from "../api/postService";
+import postService, { Post } from "../api/postService";
+import { useAuth } from "../hooks/useAuth";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 interface PostFormData {
   title: string;
@@ -18,10 +20,16 @@ interface PostFormData {
   tags: string[];
 }
 
-const PostCreate = () => {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+const PostEdit = () => {
   const { codeTheme } = useTheme();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [originalPost, setOriginalPost] = useState<Post | null>(null);
+
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
     description: "",
@@ -33,7 +41,7 @@ const PostCreate = () => {
   const [tagInput, setTagInput] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // 언어 옵션들 (임시로 몇 개만 추가)
+  // 언어 옵션들 (PostCreate와 동일)
   const languageOptions = [
     { value: "javascript", label: "JavaScript" },
     { value: "typescript", label: "TypeScript" },
@@ -46,6 +54,50 @@ const PostCreate = () => {
     { value: "bash", label: "Bash" },
     { value: "json", label: "JSON" },
   ];
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!id) {
+        setError("게시글 ID가 없습니다.");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const post = await postService.fetchPostById(id);
+
+        // 작성자 확인
+        // post.author가 있으면 author.email로, 없으면 authorId로 비교
+        if (
+          !user ||
+          (post.author && user.email !== post.author.email) ||
+          (!post.author && user.email !== post.authorId)
+        ) {
+          setError("이 게시글을 수정할 권한이 없습니다.");
+          setIsLoading(false);
+          return;
+        }
+
+        setOriginalPost(post);
+        setFormData({
+          title: post.title,
+          description: post.description,
+          code: post.code,
+          language: post.language || "javascript",
+          tags: post.tags,
+        });
+      } catch (err: any) {
+        console.error("게시글 조회 에러:", err);
+        setError(
+          err.response?.data?.message || "게시글을 불러오는데 실패했습니다."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [id, user]);
 
   const handleInputChange = (field: keyof PostFormData, value: string) => {
     setFormData((prev) => ({
@@ -93,24 +145,23 @@ const PostCreate = () => {
       return;
     }
 
+    if (!id) return;
+
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
       setError(null);
 
-      // 실제 API 호출
-      const postData: CreatePostRequest = {
+      await postService.updatePost(id, {
         title: formData.title.trim(),
         description: formData.description.trim(),
         code: formData.code.trim(),
         tags: formData.tags,
-      };
+      });
 
-      const newPost = await postService.createPost(postData);
-      console.log("게시글 작성 성공:", newPost);
-      // 성공 시 작성된 게시글 상세 페이지로 이동
-      navigate(`/posts/${newPost.id}`);
+      // 수정 성공 시 상세 페이지로 이동
+      navigate(`/posts/${id}`);
     } catch (err: any) {
-      console.error("게시글 작성 에러:", err);
+      console.error("게시글 수정 에러:", err);
 
       // 에러 메시지 처리
       if (err.response?.data?.message) {
@@ -118,24 +169,46 @@ const PostCreate = () => {
       } else if (err.response?.status === 401) {
         setError("로그인이 필요합니다. 다시 로그인해주세요.");
       } else if (err.response?.status === 403) {
-        setError("게시글 작성 권한이 없습니다.");
+        setError("게시글 수정 권한이 없습니다.");
       } else {
-        setError("게시글 작성에 실패했습니다. 다시 시도해주세요.");
+        setError("게시글 수정에 실패했습니다. 다시 시도해주세요.");
       }
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    navigate(-1); // 이전 페이지로 돌아가기
+    navigate(`/posts/${id}`);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="md" />
+      </div>
+    );
+  }
+
+  if (error && !originalPost) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="text-lg text-red-500 mb-4">{error}</div>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+        >
+          돌아가기
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-color)]">
       {/* 헤더 영역 */}
       <div className="h-36 bg-[var(--bg-sub-color)] mt-15 flex items-center justify-center">
-        <h1>새 코드 조각 작성</h1>
+        <h1>코드 수정하기</h1>
       </div>
 
       {/* 메인 콘텐츠 */}
@@ -159,7 +232,7 @@ const PostCreate = () => {
               onChange={(e) => handleInputChange("title", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="60자 이내 작성"
-              disabled={isLoading}
+              disabled={isSubmitting}
               maxLength={60}
               required
             />
@@ -177,7 +250,7 @@ const PostCreate = () => {
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               placeholder="180자 이내 작성"
               rows={3}
-              disabled={isLoading}
+              disabled={isSubmitting}
               maxLength={180}
             />
           </div>
@@ -196,12 +269,12 @@ const PostCreate = () => {
                 onKeyPress={handleKeyPress}
                 className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="태그를 입력하고 Enter를 누르세요"
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               <Button
                 type="button"
                 onClick={handleAddTag}
-                disabled={!tagInput.trim() || isLoading}
+                disabled={!tagInput.trim() || isSubmitting}
                 className="rounded-lg"
               >
                 추가
@@ -221,7 +294,7 @@ const PostCreate = () => {
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
                       className="ml-1 text-gray-600 hover:text-gray-800"
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                     >
                       ×
                     </button>
@@ -254,7 +327,7 @@ const PostCreate = () => {
                 value={formData.language}
                 onChange={(e) => handleInputChange("language", e.target.value)}
                 className="w-full h-full appearance-none pl-12.5 pr-8 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 {languageOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -277,7 +350,7 @@ const PostCreate = () => {
                 onChange={(e) => handleInputChange("code", e.target.value)}
                 className="absolute inset-0 w-full h-full p-4 bg-transparent text-transparent caret-white resize-none font-mono text-[1rem] z-10 focus:outline-none"
                 placeholder=""
-                disabled={isLoading}
+                disabled={isSubmitting}
                 required
                 style={{
                   minHeight: "400px",
@@ -288,7 +361,7 @@ const PostCreate = () => {
               <div className="rounded-lg overflow-hidden border border-gray-300">
                 <SyntaxHighlighter
                   language={formData.language}
-                  style={syntaxStyles[codeTheme]} // <- 변경
+                  style={syntaxStyles[codeTheme]}
                   customStyle={{
                     padding: "1rem",
                     fontSize: "0.875rem",
@@ -310,12 +383,12 @@ const PostCreate = () => {
               type="button"
               variant="secondary"
               onClick={handleCancel}
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               취소
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "작성 중..." : "업로드"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "수정 중..." : "수정하기"}
             </Button>
           </div>
         </form>
@@ -324,4 +397,4 @@ const PostCreate = () => {
   );
 };
 
-export default PostCreate;
+export default PostEdit;

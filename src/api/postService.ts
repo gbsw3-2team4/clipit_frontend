@@ -2,6 +2,7 @@
 import axiosInstance from "./axios";
 
 // 게시글 타입 정의 (API 명세서 + language 추가 예정)
+// 게시글 타입 정의 (API 명세서 + language 추가 예정)
 export interface Post {
   id: string;
   title: string;
@@ -12,6 +13,14 @@ export interface Post {
   authorId: string;
   createdAt: string;
   updatedAt: string;
+  author?: {
+    id: string;
+    email: string;
+    name: string;
+    password?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
 }
 
 // 게시글 생성 요청 타입
@@ -103,8 +112,12 @@ class PostService {
   // 내가 작성한 게시글 조회 (현재 로그인한 사용자)
   async fetchMyPosts(): Promise<Post[]> {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (user.id) {
-      return this.fetchPostsByAuthor(user.id);
+    if (user.email) {
+      // email을 사용하거나
+      return this.fetchPostsByAuthor(user.email);
+    } else if (user.name) {
+      // name을 사용
+      return this.fetchPostsByAuthor(user.name);
     }
     return [];
   }

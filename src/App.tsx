@@ -1,4 +1,4 @@
-// App.tsx (수정안)
+//App.tsx
 import { Routes, Route } from "react-router-dom";
 import MyCode from "./pages/MyCode.tsx";
 import Settings from "./pages/Settings.tsx";
@@ -7,6 +7,7 @@ import PrivateRoute from "./routes/PrivateRoute.tsx";
 import MainRoute from "./pages/MainRoute.tsx";
 import PostDetail from "./pages/PostDetail.tsx";
 import PostCreate from "./pages/PostCreate.tsx";
+import PostEdit from "./pages/PostEdit.tsx";
 
 const App = () => {
   return (
@@ -17,6 +18,14 @@ const App = () => {
         element={
           <PrivateRoute>
             <PostDetail />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/posts/:id/edit"
+        element={
+          <PrivateRoute>
+            <PostEdit />
           </PrivateRoute>
         }
       />

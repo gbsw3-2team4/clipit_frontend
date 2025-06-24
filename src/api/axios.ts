@@ -1,7 +1,7 @@
 import axios from "axios";
 import authService from "./authService";
 
-const BASE_URL = "http://localhost:3000/";
+const BASE_URL = "http://localhost:3000/api/";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,

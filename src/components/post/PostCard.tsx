@@ -1,7 +1,14 @@
 // src/components/post/PostCard.tsx
 import Anonymous from "/images/Anonymous.png";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { syntaxStyles } from "../../styles/syntaxThemes";
+import { useTheme } from "../../context/ThemeContext";
+
+interface Author {
+  id: string;
+  name: string;
+  email: string;
+}
 
 interface PostCardProps {
   id: string;
@@ -10,7 +17,7 @@ interface PostCardProps {
   code: string;
   language?: string;
   tags: string[];
-  authorId: string;
+  author?: Author;
   createdAt: string;
   updatedAt: string;
   onClick?: () => void;
@@ -22,12 +29,23 @@ const PostCard = ({
   code,
   language = "javascript",
   tags,
-  authorId,
+  author,
   createdAt,
   onClick,
 }: PostCardProps) => {
   // 작성자 ID를 그대로 표시
-  const displayName = authorId || "알 수 없는 사용자";
+  const displayName = author?.name || "알 수 없는 사용자";
+  const { codeTheme } = useTheme();
+
+  // 코드 10줄로 제한
+  const truncateCode = (code: string, maxLines: number = 10) => {
+    const lines = code.split("\n");
+    if (lines.length <= maxLines) {
+      return code;
+    }
+    const truncatedLines = lines.slice(0, maxLines);
+    return truncatedLines.join("\n") + "\n...";
+  };
 
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
@@ -88,19 +106,20 @@ const PostCard = ({
       <p className="text-sm text-gray-700 mb-3">{description}</p>
 
       {/* 코드 영역 */}
-      <div className="rounded-2xl overflow-hidden mb-4">
+      <div className="rounded-2xl overflow-hidden mb-4 border border-[var(--border-color)]">
         <SyntaxHighlighter
           language={language}
-          style={oneDark}
+          style={syntaxStyles[codeTheme]}
           customStyle={{
             padding: "1rem",
             fontSize: "0.875rem",
             borderRadius: "1rem",
             background: "#282C34",
+            maxHeight: "auto",
           }}
           wrapLongLines
         >
-          {code}
+          {truncateCode(code)}
         </SyntaxHighlighter>
       </div>
 

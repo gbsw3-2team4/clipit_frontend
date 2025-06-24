@@ -123,10 +123,15 @@ class AuthService {
   // 현재 사용자 정보 가져오기
   getCurrentUser(): User | null {
     const userStr = localStorage.getItem("user");
-    if (userStr) {
-      return JSON.parse(userStr) as User;
+    if (!userStr || userStr === "undefined" || userStr === "null") {
+      return null;
     }
-    return null;
+    try {
+      return JSON.parse(userStr) as User;
+    } catch {
+      localStorage.removeItem("user"); // 불량값 자동 정리
+      return null;
+    }
   }
 
   // 사용자 정보 저장
